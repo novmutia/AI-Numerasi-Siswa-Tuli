@@ -167,7 +167,15 @@ class AssessmentController extends Controller
                 return [
                     'id'                => $q->id,
                     'topic'             => $q->topic,
-                    'correct_option_id' => $correctOption ? $correctOption->id : null,
+                    'correct_option_id' => $correctOption?->id,
+                    // Kirim data options lengkap ke DiagnosisService
+                    // agar bisa baca indicator dan level_value tiap pilihan
+                    'options'           => $q->options->map(fn($o) => [
+                        'id'          => $o->id,
+                        'is_correct'  => $o->is_correct,
+                        'indicator'   => $o->indicator,
+                        'level_value' => $o->level_value,
+                    ])->toArray(),
                 ];
             })
             ->toArray();

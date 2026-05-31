@@ -6,8 +6,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class Option extends Model
 {
-    protected $fillable = ['question_id', 'option_text', 'is_correct', 'order'];
+    protected $fillable = [
+        'question_id',
+        'option_text',
+        'is_correct',
+        'order',
+        'indicator',
+        'level_value',
+    ];
     protected $casts    = ['is_correct' => 'boolean'];
-
-    public function question() { return $this->belongsTo(Question::class); }
+    public function question()
+    {
+        return $this->belongsTo(Question::class);
+    }
 }
