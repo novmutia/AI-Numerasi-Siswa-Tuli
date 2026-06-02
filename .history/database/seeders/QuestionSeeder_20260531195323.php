@@ -35,7 +35,7 @@ class QuestionSeeder extends Seeder
 
             // ── SOAL 1 — NSI — Skills ─────────────────────────────────────
             [
-                'question_text' => '3 apel merah + 1 apel merah. Berapa jumlah semua apel?',
+                'question_text' => '🖼️ Gambar: 3 apel merah + 1 apel merah\nBerapa jumlah semua apel?',
                 'topic'         => 'Skills',
                 'difficulty'    => 'easy',
                 'video_path'    => null,
@@ -49,7 +49,7 @@ class QuestionSeeder extends Seeder
 
             // ── SOAL 2 — NSI — Problem Solving ───────────────────────────
             [
-                'question_text' => 'Tas berisi 3 buku dan 2 pensil. Berapa jumlah semua benda di dalam tas?',
+                'question_text' => '🖼️ Gambar: Tas berisi 3 buku dan 2 pensil\nBerapa jumlah semua benda di dalam tas?',
                 'topic'         => 'Problem Solving',
                 'difficulty'    => 'easy',
                 'video_path'    => null,
@@ -63,7 +63,7 @@ class QuestionSeeder extends Seeder
 
             // ── SOAL 3 — NSI — Literasi Konteks ──────────────────────────
             [
-                'question_text' => 'Permen seharga Rp1.000. Beli 2 permen. Berapa total harga yang harus dibayar?',
+                'question_text' => '🖼️ Gambar: Permen seharga Rp1.000. Beli 2 permen.\nBerapa total harga yang harus dibayar?',
                 'topic'         => 'Literasi Konteks',
                 'difficulty'    => 'easy',
                 'video_path'    => null,
@@ -77,7 +77,7 @@ class QuestionSeeder extends Seeder
 
             // ── SOAL 4 — Basic — Skills ───────────────────────────────────
             [
-                'question_text' => 'Kebun ada 7 bunga, lalu 2 bunga dipetik. Berapa sisa bunga di kebun?',
+                'question_text' => '🖼️ Gambar: Kebun ada 7 bunga, lalu 2 bunga dipetik.\nBerapa sisa bunga di kebun?',
                 'topic'         => 'Skills',
                 'difficulty'    => 'medium',
                 'video_path'    => null,
@@ -91,7 +91,7 @@ class QuestionSeeder extends Seeder
 
             // ── SOAL 5 — Basic — Skills ───────────────────────────────────
             [
-                'question_text' => '7 + 2 = ?. Berapa hasilnya?',
+                'question_text' => '🖼️ Gambar: 7 + 2 = ?\nBerapa hasilnya?',
                 'topic'         => 'Skills',
                 'difficulty'    => 'medium',
                 'video_path'    => null,
@@ -105,7 +105,7 @@ class QuestionSeeder extends Seeder
 
             // ── SOAL 6 — Basic — Literasi Konteks ────────────────────────
             [
-                'question_text' => 'Air mineral Rp2.000 + Roti Rp3.000, Budi membeli keduanya. Berapa total harga?',
+                'question_text' => '🖼️ Gambar: Air mineral Rp2.000 + Roti Rp3.000\nBudi membeli keduanya. Berapa total harga?',
                 'topic'         => 'Literasi Konteks',
                 'difficulty'    => 'medium',
                 'video_path'    => null,
@@ -119,7 +119,7 @@ class QuestionSeeder extends Seeder
 
             // ── SOAL 7 — Proficient — Skills ─────────────────────────────
             [
-                'question_text' => '10 kue, 5 kue dimakan. Berapa bagian kue yang dimakan? Tuliskan dalam bentuk pecahan.',
+                'question_text' => '🖼️ Gambar: 10 kue, 5 kue dimakan.\nBerapa bagian kue yang dimakan? Tuliskan dalam bentuk pecahan.',
                 'topic'         => 'Skills',
                 'difficulty'    => 'hard',
                 'video_path'    => null,
@@ -133,7 +133,7 @@ class QuestionSeeder extends Seeder
 
             // ── SOAL 8 — Proficient — Problem Solving ─────────────────────
             [
-                'question_text' => '12 permen dibagikan sama rata kepada 3 anak. Berapa permen yang diterima setiap anak?',
+                'question_text' => '🖼️ Gambar: 12 permen dibagikan sama rata kepada 3 anak.\nBerapa permen yang diterima setiap anak?',
                 'topic'         => 'Problem Solving',
                 'difficulty'    => 'hard',
                 'video_path'    => null,
@@ -147,7 +147,7 @@ class QuestionSeeder extends Seeder
 
             // ── SOAL 9 — Proficient — Literasi Konteks ────────────────────
             [
-                'question_text' => 'Harga 1 buku = Rp4.000. Ani membeli 3 buku. Berapa total harga yang harus dibayar Ani?',
+                'question_text' => '🖼️ Gambar: Harga 1 buku = Rp4.000. Ani membeli 3 buku.\nBerapa total harga yang harus dibayar Ani?',
                 'topic'         => 'Literasi Konteks',
                 'difficulty'    => 'hard',
                 'video_path'    => null,
@@ -161,7 +161,7 @@ class QuestionSeeder extends Seeder
 
             // ── SOAL 10 — Advanced — Skills ───────────────────────────────
             [
-                'question_text' => 'Data nilai ulangan: 70, 80, 90. Berapa nilai rata-rata ketiga siswa tersebut?',
+                'question_text' => '🖼️ Data nilai ulangan: 70, 80, 90\nBerapa nilai rata-rata ketiga siswa tersebut?',
                 'topic'         => 'Skills',
                 'difficulty'    => 'hard',
                 'video_path'    => null,
@@ -175,7 +175,7 @@ class QuestionSeeder extends Seeder
 
             // ── SOAL 11 — Advanced — Problem Solving ──────────────────────
             [
-                'question_text' => 'Pita panjang 20 cm dipotong menjadi 4 bagian sama panjang. Berapa panjang tiap bagian?',
+                'question_text' => '🖼️ Gambar: Pita panjang 20 cm dipotong menjadi 4 bagian sama panjang.\nBerapa panjang tiap bagian?',
                 'topic'         => 'Problem Solving',
                 'difficulty'    => 'hard',
                 'video_path'    => null,
@@ -189,7 +189,7 @@ class QuestionSeeder extends Seeder
 
             // ── SOAL 12 — Advanced — Literasi Konteks ─────────────────────
             [
-                'question_text' => 'Harga 1 minuman = Rp2.000. Uang kamu Rp10.000. Berapa minuman yang bisa dibeli?',
+                'question_text' => '🖼️ Gambar: Harga 1 minuman = Rp2.000. Uang kamu Rp10.000.\nBerapa minuman yang bisa dibeli?',
                 'topic'         => 'Literasi Konteks',
                 'difficulty'    => 'hard',
                 'video_path'    => null,

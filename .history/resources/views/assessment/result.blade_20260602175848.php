@@ -173,7 +173,7 @@
         @endif
 
 
-        {{-- ── PROBABILITAS PER DIMENSI ── --}}
+        {{-- ── PROBABILITAS PER TOPIK ── --}}
         <div class="card">
             <h3 class="font-bold text-slate-800 text-sm mb-4">Performa per Dimensi</h3>
             <div class="space-y-3">
