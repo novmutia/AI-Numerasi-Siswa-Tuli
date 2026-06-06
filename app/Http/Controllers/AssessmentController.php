@@ -26,32 +26,50 @@ class AssessmentController extends Controller
     public function start()
     {
         $schools = School::orderBy('name', 'asc')->get();
-        return view('assessment.start', compact('schools'));
+        
+        $studentsJS = Student::with('school:id,name')
+            ->select('id', 'name', 'school_id')
+            ->get()
+            ->map(fn($s) => [
+                'id' => $s->id,
+                'name' => $s->name,
+                'school' => $s->school->name ?? '—'
+            ]);
+            
+        return view('assessment.start', compact('schools', 'studentsJS'));
     }
 
     // STEP 2 — Simpan siswa & buat sesi
     public function storeStudent(Request $request)
     {
-        $request->validate([
-            'student_name' => 'required|string|min:2|max:100',
-            'school_id'    => 'required|exists:schools,id',
-        ], [
-            'student_name.required' => 'Nama siswa wajib diisi.',
-            'student_name.min'      => 'Nama siswa minimal 2 karakter.',
-            'school_id.required'    => 'Pilih sekolah terlebih dahulu.',
-            'school_id.exists'      => 'Sekolah tidak ditemukan.',
-        ]);
+        if ($request->filled('existing_student_id')) {
+            $request->validate([
+                'existing_student_id' => 'exists:students,id'
+            ]);
+            
+            $student = Student::findOrFail($request->existing_student_id);
+        } else {
+            $request->validate([
+                'student_name' => 'required|string|min:2|max:100',
+                'school_id'    => 'required|exists:schools,id',
+            ], [
+                'student_name.required' => 'Nama siswa wajib diisi.',
+                'student_name.min'      => 'Nama siswa minimal 2 karakter.',
+                'school_id.required'    => 'Pilih sekolah terlebih dahulu.',
+                'school_id.exists'      => 'Sekolah tidak ditemukan.',
+            ]);
 
-        $student = Student::firstOrCreate(
-            [
-                'name'      => $request->student_name,
-                'school_id' => (int) $request->school_id,
-            ],
-            [
-                'name'      => $request->student_name,
-                'school_id' => (int) $request->school_id,
-            ]
-        );
+            $student = Student::firstOrCreate(
+                [
+                    'name'      => $request->student_name,
+                    'school_id' => (int) $request->school_id,
+                ],
+                [
+                    'name'      => $request->student_name,
+                    'school_id' => (int) $request->school_id,
+                ]
+            );
+        }
 
         // where() dengan 3 argumen eksplisit
         $questions = Question::where('is_active', '=', true)

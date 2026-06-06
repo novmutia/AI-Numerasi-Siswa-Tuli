@@ -13,46 +13,30 @@ class StatisticsController extends Controller
 {
     public function index(Request $request)
     {
-        // ── Filter ────────────────────────────────────────────────────────
-        $schoolId = $request->query('school_id');
-
-        // ── Data sekolah untuk dropdown filter ────────────────────────────
+        // ── Data sekolah untuk dropdown ────────────────────────────
         $schools = School::orderBy('name')->get();
 
-        // ── Total keseluruhan ─────────────────────────────────────────────
+        // ── Data mentah untuk initial load (Semua Sekolah) ─────────
         $totalSiswa    = Student::count();
         $totalAsesmen  = DiagnosisResult::count();
 
-        // ── Distribusi level (untuk pie/bar chart) ────────────────────────
         $distribusiLevel = DiagnosisResult::selectRaw('level, COUNT(*) as total')
-            ->when($schoolId, function ($q) use ($schoolId) {
-                $q->whereHas('student', fn($s) => $s->where('school_id', $schoolId));
-            })
             ->groupBy('level')
             ->orderByRaw("FIELD(level, 'NSI', 'Basic', 'Proficient', 'Advanced')")
             ->pluck('total', 'level')
             ->toArray();
 
-        // Pastikan semua level ada meskipun nilainya 0
         $distribusiLevel = array_merge(
             ['NSI' => 0, 'Basic' => 0, 'Proficient' => 0, 'Advanced' => 0],
             $distribusiLevel
         );
 
-        // ── Rata-rata akurasi per level ────────────────────────────────────
         $rataAkurasi = DiagnosisResult::selectRaw('level, ROUND(AVG(accuracy), 1) as rata')
-            ->when($schoolId, function ($q) use ($schoolId) {
-                $q->whereHas('student', fn($s) => $s->where('school_id', $schoolId));
-            })
             ->groupBy('level')
             ->pluck('rata', 'level')
             ->toArray();
 
-        // ── Hasil terbaru (10 terakhir) ───────────────────────────────────
         $hasilTerbaru = DiagnosisResult::with(['student.school'])
-            ->when($schoolId, function ($q) use ($schoolId) {
-                $q->whereHas('student', fn($s) => $s->where('school_id', $schoolId));
-            })
             ->latest()
             ->take(10)
             ->get()
@@ -62,14 +46,10 @@ class StatisticsController extends Controller
                 'level'   => $d->level,
                 'akurasi' => $d->accuracy,
                 'tanggal' => $d->created_at->format('d M Y'),
+                'dimensi_lemah' => count($d->weaknesses ?? []) > 0 ? implode(', ', array_slice($d->weaknesses, 0, 2)) : '—'
             ]);
 
-        // ── Topik/dimensi paling banyak lemah ─────────────────────────────
-        // weaknesses disimpan sebagai JSON array di diagnosis_results
-        $semuaWeakness = DiagnosisResult::when($schoolId, function ($q) use ($schoolId) {
-            $q->whereHas('student', fn($s) => $s->where('school_id', $schoolId));
-        })
-            ->pluck('weaknesses')
+        $semuaWeakness = DiagnosisResult::pluck('weaknesses')
             ->flatten()
             ->filter()
             ->countBy()
@@ -77,12 +57,10 @@ class StatisticsController extends Controller
             ->take(5)
             ->toArray();
 
-        // ── Statistik per sekolah ─────────────────────────────────────────
         $perSekolah = School::withCount('students')
             ->with(['students.diagnosisResults' => function ($q) {
                 $q->latest()->limit(1);
             }])
-            ->when($schoolId, fn($q) => $q->where('id', $schoolId))
             ->orderBy('name')
             ->get()
             ->map(function ($school) {
@@ -92,6 +70,7 @@ class StatisticsController extends Controller
                 )->get();
 
                 return [
+                    'id'           => $school->id,
                     'nama'         => $school->name,
                     'total_siswa'  => $school->students_count,
                     'total_asesmen' => $results->count(),
@@ -99,6 +78,26 @@ class StatisticsController extends Controller
                     'level_dominan' => $results->groupBy('level')->map->count()->sortDesc()->keys()->first() ?? '-',
                 ];
             });
+
+        // ── Data JS ────────────────────────────────────────────────
+        $allStudentsJS = Student::select('id', 'school_id')->get();
+        $allResultsJS = DiagnosisResult::with(['student.school'])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(fn($d) => [
+                'id'            => $d->id,
+                'school_id'     => $d->student->school_id ?? null,
+                'level'         => $d->level,
+                'accuracy'      => $d->accuracy,
+                'weaknesses'    => $d->weaknesses ?? [],
+                'nama'          => $d->student->name ?? '—',
+                'sekolah'       => $d->student->school->name ?? '-',
+                'tanggal'       => $d->created_at->format('d M Y'),
+                'dimensi_lemah' => count($d->weaknesses ?? []) > 0 ? implode(', ', array_slice($d->weaknesses, 0, 2)) : '—'
+            ]);
+            
+        // We set schoolId as null for view compatibility
+        $schoolId = null;
 
         return view('statistics', compact(
             'schools',
@@ -109,7 +108,9 @@ class StatisticsController extends Controller
             'rataAkurasi',
             'hasilTerbaru',
             'semuaWeakness',
-            'perSekolah'
+            'perSekolah',
+            'allStudentsJS',
+            'allResultsJS'
         ));
     }
 }

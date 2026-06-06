@@ -12,6 +12,13 @@ Aplikasi ini mendukung:
 - penyimpanan jawaban dan laporan diagnosis,
 - dashboard statistik dan ringkasan hasil.
 
+## Fitur Frontend & UI Terkini
+
+- **Onboarding Tour Interaktif**: Menggunakan *Driver.js* untuk memandu pengguna baru di setiap halaman (Dashboard, Asesmen, Data Siswa, Statistik).
+- **Client-Side Filtering & Live Search**: Pencarian siswa lama dan filter sekolah di halaman *Data Siswa* dan *Statistik* bekerja murni di sisi klien (JSON) tanpa memuat ulang halaman (*No-reload*).
+- **Custom Dropdown**: Elemen *select* sekolah dimodifikasi secara khusus agar responsif, dapat diatur (*custom styling*), dan sesuai dengan panduan tema aplikasi.
+- **Sistem Modal Pintar**: Komponen pop-up "Cara Kerja" dan detil metrik dirancang sedemikian rupa agar tidak tumpang-tindih dengan *Onboarding Tour*.
+
 ## Teknologi Utama
 
 - Laravel 12

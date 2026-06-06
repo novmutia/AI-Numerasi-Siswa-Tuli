@@ -8,18 +8,18 @@
 <div class="space-y-5">
 
     {{-- ── RINGKASAN ATAS ── --}}
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
         @foreach([
-            ['', $summary['total_siswa'],     'Total Siswa',       'bg-violet-50 text-violet-600'],
-            ['', $summary['total_sekolah'],   'Total Sekolah',     'bg-blue-50 text-blue-600'],
-            ['', $summary['sudah_asesmen'],   'Sudah Asesmen',     'bg-green-50 text-green-600'],
-            ['', $summary['belum_asesmen'],   'Belum Asesmen',     'bg-amber-50 text-amber-600'],
-        ] as [$val, $label, $color])
-        <div class="card flex items-center gap-3 !py-4">
-            <div class="{{ $color }} w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0">
+            ['val_total_siswa', '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>', $summary['total_siswa'], 'Total Siswa', 'bg-violet-50 text-violet-600'],
+            ['val_sudah_asesmen', '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>', $summary['sudah_asesmen'], 'Sudah Asesmen', 'bg-green-50 text-green-600'],
+            ['val_belum_asesmen', '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>', $summary['belum_asesmen'], 'Belum Asesmen', 'bg-amber-50 text-amber-600'],
+        ] as [$id, $icon, $val, $label, $color])
+        <div class="card flex items-center gap-3 !py-4 transition-all">
+            <div class="{{ $color }} w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0">
+                {!! $icon !!}
             </div>
             <div>
-                <p class="font-bold text-slate-800 text-xl leading-tight">{{ $val }}</p>
+                <p class="font-bold text-slate-800 text-xl leading-tight" id="{{ $id }}">{{ $val }}</p>
                 <p class="text-xs text-slate-400">{{ $label }}</p>
             </div>
         </div>
@@ -27,22 +27,68 @@
     </div>
 
 
-    {{-- ── FILTER SEKOLAH (TABS) ── --}}
+    {{-- ── FILTER & DAFTAR SISWA ── --}}
     <div class="card !p-0 overflow-hidden">
-        <div class="flex items-center gap-1 p-3 border-b border-slate-100 overflow-x-auto">
-            {{-- Tab Semua --}}
-            <button onclick="filterSchool('all', this)"
-                    class="school-tab active-tab flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap">
+        {{-- Header Data & Filter --}}
+        <div id="tour-students-filter" class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 border-b border-slate-100 bg-slate-50/50">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                </div>
+                <div>
+                    <p class="font-bold text-slate-800 text-xl leading-tight" id="val_total_sekolah">{{ $summary['total_sekolah'] }}</p>
+                    <p class="text-xs text-slate-400 font-medium">Total Sekolah</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <label class="text-xs font-semibold text-slate-500 whitespace-nowrap">Filter Sekolah:</label>
+                
+                {{-- Custom Dropdown Select --}}
+                <div class="relative min-w-[220px]" id="customDropdown">
+                    <button type="button" onclick="toggleDropdown()" id="dropdownTrigger"
+                            class="w-full flex items-center justify-between border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-white hover:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-400 transition-all cursor-pointer shadow-sm">
+                        <span id="dropdownLabel" class="font-medium">Semua Sekolah</span>
+                        <svg id="dropdownIcon" class="w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+
+                    <div id="dropdownMenu" class="absolute z-20 w-full mt-2 bg-white border border-slate-100 rounded-xl shadow-xl opacity-0 invisible -translate-y-2 transition-all duration-200 origin-top overflow-hidden">
+                        <div class="max-h-60 overflow-y-auto p-1.5 space-y-0.5">
+                            <button type="button" onclick="selectDropdown('all', 'Semua Sekolah')"
+                                    class="dropdown-option w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-violet-50 hover:text-violet-700 transition-colors flex items-center justify-between"
+                                    data-value="all">
+                                <span class="font-medium text-slate-700 dropdown-text">Semua Sekolah</span>
+                                <svg class="w-4 h-4 text-violet-600 hidden dropdown-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            </button>
+                            
+                            @foreach($schools as $school)
+                            <button type="button" onclick="selectDropdown('{{ $school->id }}', '{{ $school->name }}')"
+                                    class="dropdown-option w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-violet-50 hover:text-violet-700 transition-colors flex items-center justify-between group"
+                                    data-value="{{ $school->id }}">
+                                <span class="font-medium text-slate-700 dropdown-text group-hover:text-violet-700">{{ $school->name }}</span>
+                                <svg class="w-4 h-4 text-violet-600 hidden dropdown-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            </button>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        {{-- Tab Scrollable --}}
+        <div class="flex items-center gap-1 p-3 border-b border-slate-100 overflow-x-auto" id="schoolTabs">
+            <button onclick="filterSchool('all')"
+                    class="school-tab active-tab flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap"
+                    data-id="all">
                 Semua Sekolah
                 <span class="tab-count bg-violet-100 text-violet-600 text-xs px-1.5 py-0.5 rounded-full">
                     {{ $summary['total_siswa'] }}
                 </span>
             </button>
-
-            {{-- Tab per Sekolah --}}
             @foreach($schools as $school)
-            <button onclick="filterSchool('{{ $school->id }}', this)"
-                    class="school-tab flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap text-slate-500 hover:bg-slate-50">
+            <button onclick="filterSchool('{{ $school->id }}')"
+                    class="school-tab flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap text-slate-500 hover:bg-slate-50"
+                    data-id="{{ $school->id }}">
                 {{ $school->name }}
                 <span class="tab-count bg-slate-100 text-slate-500 text-xs px-1.5 py-0.5 rounded-full">
                     {{ $school->students_count }}
@@ -56,7 +102,7 @@
         <div class="p-4">
 
             {{-- Search --}}
-            <div class="relative mb-4">
+            <div id="tour-students-search" class="relative mb-4">
                 <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
                 </svg>
@@ -82,6 +128,7 @@
                 <div class="student-card cursor-pointer group"
                      data-school="{{ $student->school_id }}"
                      data-name="{{ strtolower($student->name) }}"
+                     data-assessed="{{ $latest ? 'true' : 'false' }}"
                      onclick="openDetail({{ $student->id }})">
                     <div class="bg-white border border-slate-100 rounded-2xl p-4 hover:border-violet-300 hover:shadow-md transition-all">
                         {{-- Avatar --}}
@@ -122,7 +169,9 @@
                 </div>
                 @empty
                 <div class="col-span-full text-center py-12 text-slate-400">
-                    <div class="text-4xl mb-2">👥</div>
+                    <div class="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                        <svg class="w-7 h-7 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    </div>
                     <p class="text-sm font-medium">Belum ada data siswa</p>
                     <p class="text-xs mt-1">Siswa akan muncul setelah mengikuti asesmen</p>
                 </div>
@@ -131,7 +180,9 @@
 
             {{-- Empty state (untuk search/filter) --}}
             <div id="emptyState" class="hidden text-center py-12 text-slate-400">
-                <div class="text-4xl mb-2">🔍</div>
+                <div class="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <svg class="w-7 h-7 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </div>
                 <p class="text-sm font-medium">Siswa tidak ditemukan</p>
             </div>
 
@@ -173,28 +224,116 @@
 
 @push('scripts')
 <script>
-    // ── Filter Sekolah ────────────────────────────────────────
-    function filterSchool(schoolId, btn) {
-        // Update tab active
-        document.querySelectorAll('.school-tab').forEach(t => {
-            t.classList.remove('active-tab');
-            t.classList.add('text-slate-500');
-            t.querySelector('.tab-count').className = 'tab-count bg-slate-100 text-slate-500 text-xs px-1.5 py-0.5 rounded-full';
-        });
-        btn.classList.add('active-tab');
-        btn.classList.remove('text-slate-500');
-        btn.querySelector('.tab-count').className = 'tab-count bg-violet-100 text-violet-600 text-xs px-1.5 py-0.5 rounded-full';
+    const totalSekolahAsli = {{ $summary['total_sekolah'] }};
 
-        // Filter kartu
+    // ── Custom Dropdown Logic ─────────────────────────────────
+    let dropdownOpen = false;
+    
+    function toggleDropdown() {
+        const menu = document.getElementById('dropdownMenu');
+        const icon = document.getElementById('dropdownIcon');
+        const trigger = document.getElementById('dropdownTrigger');
+        
+        dropdownOpen = !dropdownOpen;
+        
+        if (dropdownOpen) {
+            menu.classList.remove('opacity-0', 'invisible', '-translate-y-2');
+            menu.classList.add('opacity-100', 'visible', 'translate-y-0');
+            icon.classList.add('rotate-180');
+            trigger.classList.add('border-violet-300', 'ring-2', 'ring-violet-100');
+        } else {
+            menu.classList.add('opacity-0', 'invisible', '-translate-y-2');
+            menu.classList.remove('opacity-100', 'visible', 'translate-y-0');
+            icon.classList.remove('rotate-180');
+            trigger.classList.remove('border-violet-300', 'ring-2', 'ring-violet-100');
+        }
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (dropdownOpen && !document.getElementById('customDropdown').contains(e.target)) {
+            toggleDropdown();
+        }
+    });
+
+    function selectDropdown(id, name) {
+        filterSchool(id, name);
+        if (dropdownOpen) toggleDropdown();
+    }
+
+    // ── Filter Sekolah Utama ──────────────────────────────────
+    function filterSchool(schoolId, schoolName = null) {
         let visible = 0;
+        let sudah = 0;
+        let belum = 0;
+
+        // Jika nama sekolah tidak diberikan (dari klik tab scroll), cari nama aslinya
+        if (!schoolName) {
+            document.querySelectorAll('.dropdown-option').forEach(opt => {
+                if(opt.dataset.value === schoolId) schoolName = opt.querySelector('.dropdown-text').innerText;
+            });
+        }
+
+        // Sync Dropdown Text & Checks
+        document.getElementById('dropdownLabel').innerText = schoolName || 'Semua Sekolah';
+        
+        document.querySelectorAll('.dropdown-option').forEach(opt => {
+            const isMatch = opt.dataset.value === schoolId;
+            const text = opt.querySelector('.dropdown-text');
+            const check = opt.querySelector('.dropdown-check');
+            
+            if (isMatch) {
+                opt.classList.add('bg-violet-50');
+                text.classList.replace('text-slate-700', 'text-violet-700');
+                check.classList.remove('hidden');
+            } else {
+                opt.classList.remove('bg-violet-50');
+                text.classList.replace('text-violet-700', 'text-slate-700');
+                check.classList.add('hidden');
+            }
+        });
+
+        // Sync Tabs
+        document.querySelectorAll('.school-tab').forEach(t => {
+            if (t.dataset.id === schoolId) {
+                t.classList.add('active-tab');
+                t.classList.remove('text-slate-500');
+                t.querySelector('.tab-count').className = 'tab-count bg-violet-100 text-violet-600 text-xs px-1.5 py-0.5 rounded-full';
+                // Auto scroll tab into view
+                t.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            } else {
+                t.classList.remove('active-tab');
+                t.classList.add('text-slate-500');
+                t.querySelector('.tab-count').className = 'tab-count bg-slate-100 text-slate-500 text-xs px-1.5 py-0.5 rounded-full';
+            }
+        });
+
+        // Filter kartu dan hitung ulang berdasarkan sekolah terpilih
         document.querySelectorAll('.student-card').forEach(card => {
             const match = schoolId === 'all' || card.dataset.school === schoolId;
             card.style.display = match ? '' : 'none';
-            if (match) visible++;
+            if (match) {
+                visible++;
+                if (card.dataset.assessed === 'true') {
+                    sudah++;
+                } else {
+                    belum++;
+                }
+            }
         });
+
+        // Sinkronkan data di card ringkasan atas
+        document.getElementById('val_total_siswa').innerText = visible;
+        document.getElementById('val_sudah_asesmen').innerText = sudah;
+        document.getElementById('val_belum_asesmen').innerText = belum;
+
+        // Sinkronkan data Total Sekolah
+        document.getElementById('val_total_sekolah').innerText = schoolId === 'all' ? totalSekolahAsli : 1;
+
+        // Update UI state
         document.getElementById('emptyState').classList.toggle('hidden', visible > 0);
 
-        // Reset search
+        // Reset search field
         document.getElementById('searchInput').value = '';
     }
 
@@ -235,7 +374,9 @@
             .catch(err => {
                 document.getElementById('modalContent').innerHTML = `
                     <div class="p-8 text-center">
-                        <p class="text-3xl mb-2"></p>
+                        <div class="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                            <svg class="w-7 h-7 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
                         <p class="text-sm font-semibold text-red-600 mb-1">Gagal memuat data siswa</p>
                         <p class="text-xs text-slate-400 bg-slate-50 rounded-lg px-3 py-2 mt-2 text-left font-mono">${err.message}</p>
                         <button onclick="closeDetail()" class="mt-4 bg-violet-600 text-white text-sm px-4 py-2 rounded-xl">Tutup</button>
@@ -363,7 +504,9 @@
             </div>
             ` : `
             <div class="bg-amber-50 border border-amber-100 rounded-2xl p-4 mb-4 text-center">
-                <p class="text-2xl mb-1"></p>
+                <div class="w-14 h-14 bg-amber-100/50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <svg class="w-7 h-7 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                </div>
                 <p class="text-sm font-semibold text-amber-700">Siswa belum mengikuti asesmen</p>
                 <a href="/assessment/start" class="inline-block mt-2 bg-violet-600 text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-violet-700 transition-colors">Mulai Asesmen</a>
             </div>
@@ -389,8 +532,14 @@
 
         </div>`;
     }
-</script>
 
+    // Driver.js Tour Logic
+    startTourWhenReady('tour_students', [
+        { element: '#tour-students-filter', popover: { title: 'Filter Asal Sekolah', description: 'Gunakan dropdown ini untuk memfilter data siswa berdasarkan sekolah tertentu secara instan.' } },
+        { element: '#tour-students-search', popover: { title: 'Pencarian Instan', description: 'Ketik nama siswa di sini untuk menemukannya dengan cepat tanpa perlu memuat ulang halaman.' } },
+        { element: '#studentGrid', popover: { title: 'Daftar Siswa', description: 'Ini adalah daftar seluruh siswa. Klik pada kartu siswa mana saja untuk melihat riwayat asesmen dan dimensi kelemahan mereka.' } }
+    ]);
+</script>
 <style>
     .active-tab { background: #7c3aed !important; color: white !important; }
     .active-tab .tab-count { background: rgba(255,255,255,0.2) !important; color: white !important; }

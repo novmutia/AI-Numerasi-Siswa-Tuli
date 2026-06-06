@@ -47,10 +47,77 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
+        // ── Timeline: 8 aktivitas terbaru ──────────────────────────────
+        $timeline = DiagnosisResult::with('student.school')
+            ->latest()
+            ->take(8)
+            ->get();
+
+        // ── Detail data untuk popup ────────────────────────────────────
+        // Daftar siswa (max 10)
+        $detailSiswa = Student::with('school')->latest()->take(10)->get()
+            ->map(fn($s) => [
+                'nama'    => $s->name,
+                'sekolah' => $s->school->name ?? '—',
+            ]);
+
+        // Daftar sekolah
+        $detailSekolah = School::withCount('students')->get()
+            ->map(fn($s) => [
+                'nama'  => $s->name,
+                'siswa' => $s->students_count,
+            ]);
+
+        // Asesmen terbaru (max 10)
+        $detailAsesmen = DiagnosisResult::with('student.school')->latest()->take(10)->get()
+            ->map(fn($r) => [
+                'nama'    => $r->student->name ?? '—',
+                'sekolah' => $r->student->school->name ?? '—',
+                'level'   => $r->level,
+                'akurasi' => $r->accuracy,
+                'tanggal' => $r->created_at->format('d M Y'),
+            ]);
+
+        // Akurasi per level
+        $detailAkurasi = DiagnosisResult::selectRaw('level, ROUND(AVG(accuracy)) as rata, COUNT(*) as jml')
+            ->groupBy('level')
+            ->get()
+            ->map(fn($r) => [
+                'level' => $r->level,
+                'rata'  => $r->rata,
+                'jml'   => $r->jml,
+            ]);
+
+        // Siswa per level
+        $detailPerLevel = [];
+        foreach (['NSI', 'Basic', 'Proficient', 'Advanced'] as $lvl) {
+            $detailPerLevel[$lvl] = DiagnosisResult::with('student.school')
+                ->where('level', $lvl)
+                ->latest()
+                ->take(10)
+                ->get()
+                ->map(fn($r) => [
+                    'nama'    => $r->student->name ?? '—',
+                    'sekolah' => $r->student->school->name ?? '—',
+                    'akurasi' => $r->accuracy,
+                    'tanggal' => $r->created_at->format('d M Y'),
+                ]);
+        }
+
+        $popupData = [
+            'total_siswa'     => $detailSiswa,
+            'total_sekolah'   => $detailSekolah,
+            'asesmen_selesai' => $detailAsesmen,
+            'rata_skor'       => $detailAkurasi,
+            'level'           => $detailPerLevel,
+        ];
+
         return view('dashboard', compact(
             'stats',
             'distribusiLevel',
-            'hasilTerbaru'
+            'hasilTerbaru',
+            'timeline',
+            'popupData'
         ));
     }
 }
