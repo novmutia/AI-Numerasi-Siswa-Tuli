@@ -184,12 +184,14 @@ class AssessmentController extends Controller
                 $correctOption = $q->options->firstWhere('is_correct', true);
                 return [
                     'id'                => $q->id,
+                    'order'             => $q->order,
                     'topic'             => $q->topic,
                     'correct_option_id' => $correctOption?->id,
                     // Kirim data options lengkap ke DiagnosisService
                     // agar bisa baca indicator dan level_value tiap pilihan
                     'options'           => $q->options->map(fn($o) => [
                         'id'          => $o->id,
+                        'order'       => $o->order,
                         'is_correct'  => $o->is_correct,
                         'indicator'   => $o->indicator,
                         'level_value' => $o->level_value,

@@ -179,6 +179,28 @@ class DiagnosisService
         // ── 4. Hitung probabilitas tiap level (weighted scoring → %) ──────
         $probabilitas = $this->hitungProbabilitas($bobotLevel);
 
+        // --- HYBRID ML INTEGRATION ---
+        $apiAnswers = $this->formatAnswersForApi($jawabanDetail);
+        try {
+            $response = \Illuminate\Support\Facades\Http::timeout(3)
+                ->post('http://127.0.0.1:5000/predict', [
+                    'answers' => $apiAnswers
+                ]);
+
+            if ($response->successful()) {
+                $mlData = $response->json();
+                if (isset($mlData['status']) && $mlData['status'] === 'success') {
+                    $levelResult['level'] = $mlData['level'];
+                    $levelResult['draw_note'] = 'Klasifikasi oleh XGBoost AI Model';
+                    $probabilitas = $mlData['probabilities'];
+                }
+            }
+        } catch (\Exception $e) {
+            // ML API gagal atau mati, biarkan jatuh kembali ke Rule-Based secara mulus (Fallback)
+            \Illuminate\Support\Facades\Log::warning("XGBoost API Error: " . $e->getMessage());
+        }
+        // --- END HYBRID ML INTEGRATION ---
+
         // ── 5. Hitung akurasi (benar/salah untuk backward-compatibility) ──
         $totalBenar = collect($jawabanDetail)->where('kategori', 'tepat')->count();
         $totalSoal  = count($jawabanDetail);
@@ -233,18 +255,25 @@ class DiagnosisService
     private function kumpulkanJawabanDetail(array $answers, array $questions): array
     {
         $detail = [];
+        $qIndex = 1;
 
         foreach ($questions as $question) {
             $qId      = $question['id'];
             $optionId = $answers[$qId] ?? null;
 
-            if (!$optionId) continue;
+            if (!$optionId) {
+                $qIndex++;
+                continue;
+            }
 
             // Cari option yang dipilih
             $options   = $question['options'] ?? [];
             $optDipilih = collect($options)->firstWhere('id', $optionId);
 
-            if (!$optDipilih) continue;
+            if (!$optDipilih) {
+                $qIndex++;
+                continue;
+            }
 
             $indicator  = $optDipilih['indicator']   ?? null;
             $levelValue = $optDipilih['level_value']  ?? null;
@@ -255,15 +284,35 @@ class DiagnosisService
             $detail[] = [
                 'question_id' => $qId,
                 'option_id'   => $optionId,
+                'order'       => $question['order'] ?? $qIndex,
+                'opt_order'   => $optDipilih['order'] ?? 1,
                 'dimensi'     => $dimensi,
                 'indicator'   => $indicator,
                 'level_value' => $levelValue,
                 'is_correct'  => $isCorrect,
                 'kategori'    => $kategori,
             ];
+            $qIndex++;
         }
 
         return $detail;
+    }
+
+    // ── PRIVATE: Format jawaban untuk Microservice API ─────────────────────
+    private function formatAnswersForApi(array $jawabanDetail): array
+    {
+        $apiAnswers = [];
+        foreach ($jawabanDetail as $j) {
+            $qNum = $j['order'];
+            $letter = match ((int) $j['opt_order']) {
+                1 => 'A',
+                2 => 'B',
+                3 => 'C',
+                default => 'A'
+            };
+            $apiAnswers[] = "{$qNum}_{$letter}";
+        }
+        return $apiAnswers;
     }
 
     // ── PRIVATE: Tentukan kategori dari indikator ─────────────────────────
