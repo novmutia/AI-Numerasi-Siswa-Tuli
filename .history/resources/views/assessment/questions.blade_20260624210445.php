@@ -17,18 +17,18 @@
                     selesai</span>
             </div>
             <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                <div class="h-full bg-gradient-to-r from-violet-500 to-fuchsia-400 rounded-full transition-all duration-500"
+                <div class="h-full bg-violet-500 rounded-full transition-all duration-500"
                     style="width: {{ round((($currentNumber - 1) / $totalQuestions) * 100) }}%"></div>
             </div>
             {{-- Dot indicators --}}
             <div class="flex items-center gap-1 mt-3 flex-wrap">
                 @for ($i = 1; $i <= $totalQuestions; $i++)
                     <div
-                        class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all
+                        class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all
                     {{ $i < $currentNumber
                         ? 'bg-violet-600 text-white'
                         : ($i == $currentNumber
-                            ? 'bg-violet-900 text-white ring-2 ring-violet-300'
+                            ? 'bg-violet-200 text-violet-700 ring-2 ring-violet-400'
                             : 'bg-slate-100 text-slate-400') }}">
                         {{ $i < $currentNumber ? '✓' : $i }}
                     </div>
@@ -39,27 +39,20 @@
 
         {{-- Video Card --}}
         <div class="card !p-0 overflow-hidden">
+            {{-- Video --}}
             <div class="relative bg-slate-900 aspect-video">
                 @if ($question->video_path)
                     <video id="questionVideo" class="w-full h-full object-contain" controls controlsList="nodownload"
-                        onended="onVideoEnded()"
-                        onplay="document.getElementById('videoCaptionBadge')?.classList.add('opacity-0')">
+                        onended="onVideoEnded()">
                         <source src="{{ asset('storage/' . $question->video_path) }}" type="video/mp4">
+                        {{-- Subtitle track --}}
                         @if ($question->subtitle_path)
                             <track kind="subtitles" src="{{ asset('storage/' . $question->subtitle_path) }}" srclang="id"
                                 label="Indonesia" default>
                         @endif
                     </video>
-
-                    {{-- Caption badge overlay --}}
-                    <div id="videoCaptionBadge"
-                        class="absolute inset-0 flex items-center justify-center pointer-events-none transition-opacity duration-300">
-                        <span
-                            class="bg-slate-800 text-white text-base font-bold px-5 py-2.5 rounded-full shadow-lg max-w-[85%] text-center leading-snug tracking-wide">
-                            {{ $question->question_text }}
-                        </span>
-                    </div>
                 @else
+                    {{-- Placeholder saat video belum ada --}}
                     <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 gap-3">
                         <div class="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center">
                             <svg class="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,23 +75,22 @@
                     Putar Ulang
                 </button>
             </div>
-        </div>
 
-        {{-- Teks Soal Card --}}
-        <div class="card">
-            <div class="flex items-start gap-2">
-                <span
-                    class="bg-violet-100 text-violet-600 text-xs font-bold px-2 py-0.5 rounded-md flex-shrink-0 mt-0.5">Soal</span>
-                <p class="text-slate-900 text-base font-bold leading-relaxed tracking-tight">
-                    {{ $question->question_text }}</p>
-            </div>
-            @if ($question->topic)
-                <div class="mt-2 flex items-center gap-1">
-                    <span class="text-[10px] text-slate-400">Topik:</span>
+            {{-- Subtitle / Teks soal --}}
+            <div class="bg-slate-50 border-t border-slate-100 px-5 py-4">
+                <div class="flex items-start gap-2">
                     <span
-                        class="text-[10px] bg-violet-50 text-violet-500 font-semibold px-2 py-0.5 rounded-full">{{ $question->topic }}</span>
+                        class="bg-violet-100 text-violet-600 text-xs font-bold px-2 py-0.5 rounded-md flex-shrink-0 mt-0.5">Soal</span>
+                    <p class="text-slate-800 text-sm font-semibold leading-relaxed">{{ $question->question_text }}</p>
                 </div>
-            @endif
+                @if ($question->topic)
+                    <div class="mt-2 flex items-center gap-1">
+                        <span class="text-[10px] text-slate-400">Topik:</span>
+                        <span
+                            class="text-[10px] bg-violet-50 text-violet-500 font-semibold px-2 py-0.5 rounded-full">{{ $question->topic }}</span>
+                    </div>
+                @endif
+            </div>
         </div>
 
 
@@ -109,12 +101,10 @@
             <input type="hidden" name="question_id" value="{{ $question->id }}">
             <input type="hidden" name="question_number" value="{{ $currentNumber }}">
 
-            <div class="flex flex-wrap justify-center gap-2.5" id="optionList">
+            <div class="space-y-2.5" id="optionList">
                 @foreach ($question->options as $idx => $option)
-                    @php $total = count($question->options); @endphp
                     <label
-                        class="option-label flex items-center gap-3 card !py-3.5 cursor-pointer hover:border-violet-300 border-2 border-transparent transition-all select-none grow-0
-                            {{ $total % 2 !== 0 && $loop->last ? 'basis-full max-w-[calc(50%-0.3125rem)]' : 'basis-[calc(50%-0.3125rem)]' }}"
+                        class="option-label flex items-center gap-3 card !py-3.5 cursor-pointer hover:border-violet-300 border-2 border-transparent transition-all select-none"
                         for="option_{{ $option->id }}">
                         <input type="radio" name="option_id" id="option_{{ $option->id }}" value="{{ $option->id }}"
                             class="sr-only" onchange="selectOption(this)"
@@ -130,6 +120,7 @@
 
             {{-- Navigation --}}
             <div class="flex items-center justify-between mt-5 gap-3">
+                {{-- Prev --}}
                 @if ($currentNumber > 1)
                     <a href="{{ route('assessment.questions', ['token' => $sessionToken, 'no' => $currentNumber - 1]) }}"
                         class="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition-colors">
@@ -142,9 +133,10 @@
                     <div></div>
                 @endif
 
+                {{-- Next / Finish --}}
                 @if ($currentNumber < $totalQuestions)
                     <button type="submit" id="nextBtn" disabled
-                        class="flex items-center gap-2 bg-violet-700 hover:bg-violet-800 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-2.5 px-5 rounded-xl transition-all text-sm">
+                        class="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-2.5 px-5 rounded-xl transition-all text-sm">
                         Selanjutnya
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -164,17 +156,22 @@
 
 @push('scripts')
     <script>
+        // Restore checked state on load
         document.querySelectorAll('input[name="option_id"]').forEach(input => {
             if (input.checked) styleOption(input.closest('label'), true);
         });
 
+        // Enable next button if option already selected
         if (document.querySelector('input[name="option_id"]:checked')) {
             document.getElementById('nextBtn').disabled = false;
         }
 
         function selectOption(input) {
+            // Reset all
             document.querySelectorAll('.option-label').forEach(label => styleOption(label, false));
+            // Style selected
             styleOption(input.closest('label'), true);
+            // Enable next
             document.getElementById('nextBtn').disabled = false;
         }
 
@@ -197,11 +194,13 @@
         }
 
         function onVideoEnded() {
+            // Optional: highlight answer area after video ends
             document.getElementById('optionList').classList.add('ring-2', 'ring-violet-200', 'rounded-2xl');
             setTimeout(() => document.getElementById('optionList').classList.remove('ring-2', 'ring-violet-200',
                 'rounded-2xl'), 1500);
         }
 
+        // Prevent double submit
         document.getElementById('answerForm').addEventListener('submit', function(e) {
             if (!document.querySelector('input[name="option_id"]:checked')) {
                 e.preventDefault();
